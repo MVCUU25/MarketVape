@@ -2043,6 +2043,15 @@ async function downloadCatalog() {
         const worksheet = XLSX.utils.json_to_sheet(excelData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Productos Disponibles');
+
+        const headerCells = ['A1', 'B1', 'C1']; // Celdas de los encabezados
+headerCells.forEach(cell => {
+    if (worksheet[cell]) {
+        worksheet[cell].s = {
+            font: { bold: true }
+        };
+    }
+});
         
         // Ajustar ancho de columnas
         const maxWidths = [
