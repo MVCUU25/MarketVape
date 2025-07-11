@@ -1994,7 +1994,7 @@ async function downloadCatalog() {
         // Filtrar solo productos disponibles (con "y" o "Y")
         const availableProducts = allProducts.filter(product => {
             const disponible = product['Disponible'];
-            return disponible && (disponible.toLowerCase() === 'y' || disponible.toLowerCase() === 'yes');
+            return disponible && (disponible.toLowerCase() === 'y' || disponible.toLowerCase() === 'Y');
         });
         
         if (availableProducts.length === 0) {
