@@ -1969,6 +1969,37 @@ function parseCSV(csvText) {
     return data;
 }
 
+// Función para mostrar notificaciones
+function showNotification(message, isError = false) {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.className = `notification ${isError ? 'error' : ''} show`;
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, 3000);
+}
+
+// Función para convertir CSV a formato de array (CORREGIDA)
+function parseCSV(csvText) {
+    const lines = csvText.split('\n');
+    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '')); // Usar comas y quitar comillas
+    const data = [];
+    
+    for (let i = 1; i < lines.length; i++) {
+        if (lines[i].trim()) {
+            const values = lines[i].split(',').map(v => v.trim().replace(/"/g, '')); // Usar comas y quitar comillas
+            const row = {};
+            headers.forEach((header, index) => {
+                row[header] = values[index] ? values[index] : '';
+            });
+            data.push(row);
+        }
+    }
+    
+    return data;
+}
+
 // Función principal para descargar el catálogo
 async function downloadCatalog() {
     const btn = document.getElementById('catalogBtn');
@@ -1991,10 +2022,10 @@ async function downloadCatalog() {
         // Parsear los datos CSV
         const allProducts = parseCSV(csvData);
         
-        // Filtrar solo productos disponibles (con "y" o "Y")
+        // Filtrar solo productos disponibles (CORREGIDO - solo buscar "Y" o "y")
         const availableProducts = allProducts.filter(product => {
             const disponible = product['Disponible'];
-            return disponible && (disponible.toLowerCase() === 'y' || disponible.toLowerCase() === 'Y');
+            return disponible && (disponible === 'Y' || disponible === 'y');
         });
         
         if (availableProducts.length === 0) {
@@ -2044,6 +2075,7 @@ async function downloadCatalog() {
         // Remover estado de carga
         btn.classList.remove('loading');
     }
+
 }
 </script>
 </body>
