@@ -1140,12 +1140,20 @@
                         }
                         
                         productosMap.get(nombreBase).variaciones.push({
-                            nombre: producto.sabor || `Variación ${productosMap.get(nombreBase).variaciones.length + 1}`,
-                            precio: producto.precio || 0,
-                            precioProt: protegerPrecio(producto.precio || 0, producto.id || 1),
-                            disponible: producto.disponible,
-                            liquidacion: enLiquidacion // Almacenar si esta variación está en liquidación
-                        });
+    nombre: producto.sabor || `Variación ${productosMap.get(nombreBase).variaciones.length + 1}`,
+    precio: producto.precio || 0,
+    precioProt: protegerPrecio(producto.precio || 0, producto.id || 1),
+    disponible: producto.disponible,
+    liquidacion: enLiquidacion // Almacenar si esta variación está en liquidación
+});
+
+// Marcar el producto como favorito o nuevo si alguna variación lo es
+if (producto.esFavorito && !productosMap.get(nombreBase).esFavorito) {
+    productosMap.get(nombreBase).esFavorito = true;
+}
+if (producto.esNuevo && !productosMap.get(nombreBase).esNuevo) {
+    productosMap.get(nombreBase).esNuevo = true;
+}
                     }
                 });
                 
@@ -2039,27 +2047,52 @@ function switchTab(tab) {
     applyFilters();
 }
 
-// Función para aplicar filtros
+// Función para aplicar filtros (VERSIÓN CORREGIDA)
 function applyFilters() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const searchInput = document.getElementById('searchInput');
+    const noResults = document.getElementById('noResults');
+    
+    if (!searchInput) {
+        console.log('No se encontró el input de búsqueda');
+        return;
+    }
+    
+    const searchTerm = searchInput.value.toLowerCase().trim();
     const productCards = document.querySelectorAll('.product-card');
     let visibleCount = 0;
     
+    console.log(`Buscando: "${searchTerm}" en ${productCards.length} productos`);
+    
     productCards.forEach((card, index) => {
-        const productData = productos[index];
-        if (!productData) return;
+        let shouldShow = true;
         
-        const matchesSearch = !searchTerm || 
-            productData.nombre.toLowerCase().includes(searchTerm) ||
-            (productData.variaciones && productData.variaciones.some(v => 
-                v.nombre.toLowerCase().includes(searchTerm)
-            ));
+        // Si hay término de búsqueda, filtrar por nombre
+        if (searchTerm) {
+            const productData = productos[index];
+            if (productData && productData.nombre) {
+                const nombreProducto = productData.nombre.toLowerCase();
+                shouldShow = nombreProducto.includes(searchTerm);
+                console.log(`Producto: "${productData.nombre}" - Coincide: ${shouldShow}`);
+            } else {
+                shouldShow = false;
+                console.log(`Producto ${index}: Sin datos o sin nombre`);
+            }
+        }
         
-        const matchesTab = currentTab === 'all' || 
-            (currentTab === 'favorites' && productData.esFavorito) ||
-            (currentTab === 'new' && productData.esNuevo);
+        // Aplicar filtro de pestañas
+        if (shouldShow && currentTab !== 'all') {
+            const productData = productos[index];
+            if (productData) {
+                if (currentTab === 'favorites') {
+                    shouldShow = productData.esFavorito === true;
+                } else if (currentTab === 'new') {
+                    shouldShow = productData.esNuevo === true;
+                }
+            }
+        }
         
-        if (matchesSearch && matchesTab) {
+        // Mostrar/ocultar
+        if (shouldShow) {
             card.style.display = 'block';
             visibleCount++;
         } else {
@@ -2067,13 +2100,13 @@ function applyFilters() {
         }
     });
     
-    // Mostrar mensaje si no hay resultados
-    const noResults = document.getElementById('noResults');
+    // Mostrar mensaje sin resultados
     if (noResults) {
         noResults.style.display = visibleCount === 0 ? 'block' : 'none';
     }
+    
+    console.log(`Productos visibles: ${visibleCount}`);
 }
-
 // Event listeners
 document.addEventListener('DOMContentLoaded', function() {
     // Event listener para búsqueda
